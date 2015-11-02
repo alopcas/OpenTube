@@ -3,10 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.devjumble.opentube;
+package com.codejumble.opentube;
 
+import com.codejumble.opentube.downloader.DownloadManager;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.net.MalformedURLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,7 +19,7 @@ import javax.swing.JOptionPane;
  *
  * @author lope115
  */
-public class Main extends javax.swing.JFrame {
+public class Main extends javax.swing.JFrame implements PropertyChangeListener  {
 
     /**
      * Creates new form Main
@@ -53,7 +56,7 @@ public class Main extends javax.swing.JFrame {
         videoURLLabel1 = new javax.swing.JLabel();
         fileNameField = new javax.swing.JTextField();
         fileURLLabel = new javax.swing.JLabel();
-        jToolBar1 = new javax.swing.JToolBar();
+        menuBar = new javax.swing.JToolBar();
         fileMenuButton = new javax.swing.JButton();
         helpMenuButton = new javax.swing.JButton();
         aboutMenuButton = new javax.swing.JButton();
@@ -76,6 +79,10 @@ public class Main extends javax.swing.JFrame {
                 videoURLDownloadButtonActionPerformed(evt);
             }
         });
+
+        downloadProgressBar.setMaximum(100);
+        downloadProgressBar.setMinimum(0);
+        downloadProgressBar.setStringPainted(true);
 
         videoURLField.setFont(new java.awt.Font("Verdana", 2, 11)); // NOI18N
         videoURLField.setText("Video URL");
@@ -122,15 +129,15 @@ public class Main extends javax.swing.JFrame {
         fileURLLabel.setFont(new java.awt.Font("Verdana", 0, 11)); // NOI18N
         fileURLLabel.setText("File");
 
-        jToolBar1.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        jToolBar1.setFloatable(false);
-        jToolBar1.setRollover(true);
+        menuBar.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        menuBar.setFloatable(false);
+        menuBar.setRollover(true);
 
         fileMenuButton.setText("File");
         fileMenuButton.setFocusable(false);
         fileMenuButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         fileMenuButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar1.add(fileMenuButton);
+        menuBar.add(fileMenuButton);
 
         helpMenuButton.setText("Help");
         helpMenuButton.setFocusable(false);
@@ -141,7 +148,7 @@ public class Main extends javax.swing.JFrame {
                 helpMenuButtonActionPerformed(evt);
             }
         });
-        jToolBar1.add(helpMenuButton);
+        menuBar.add(helpMenuButton);
 
         aboutMenuButton.setText("About");
         aboutMenuButton.setFocusable(false);
@@ -152,7 +159,7 @@ public class Main extends javax.swing.JFrame {
                 aboutMenuButtonActionPerformed(evt);
             }
         });
-        jToolBar1.add(aboutMenuButton);
+        menuBar.add(aboutMenuButton);
 
         videoFormatButtonGroup.add(mp4FormatOption);
         mp4FormatOption.setSelected(true);
@@ -209,12 +216,12 @@ public class Main extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(networkStatus)
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(menuBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(menuBar, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(38, 38, 38)
                 .addComponent(fileFormatLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -279,6 +286,7 @@ public class Main extends javax.swing.JFrame {
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         try {
             defaultDownloadManager.addDownloadToQueue(videoURLField.getText(), pathURLField.getText() + fileNameField.getText());
+            defaultDownloadManager.download(this);
         } catch (MalformedURLException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             defaultEventHandler.createErrorDialog(this, "The inputted URL doesn't match a valid format", "Wrong URL format");
@@ -357,7 +365,7 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JLabel fileURLLabel;
     private javax.swing.JRadioButton flvFormatOption;
     private javax.swing.JButton helpMenuButton;
-    private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JToolBar menuBar;
     private javax.swing.JRadioButton mp4FormatOption;
     private javax.swing.JLabel networkStatus;
     private javax.swing.JLabel networkStatusLabel;
@@ -368,4 +376,14 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JTextField videoURLField;
     private javax.swing.JLabel videoURLLabel1;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void propertyChange(PropertyChangeEvent pce) {
+         if ("progress" == pce.getPropertyName()) {
+            int progress = (Integer) pce.getNewValue();
+            downloadProgressBar.setValue(progress);
+            downloadProgressBar.repaint();
+            System.out.println("Completed: " + progress + "%");
+        } 
+    }
 }

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.devjumble.opentube;
+package com.codejumble.opentube;
 
 import java.net.InetSocketAddress;
 import java.net.Socket;
