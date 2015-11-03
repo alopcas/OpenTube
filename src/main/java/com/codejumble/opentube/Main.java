@@ -10,9 +10,13 @@ import java.awt.Cursor;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
+import java.util.Properties;
 import javax.swing.AbstractButton;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 /**
@@ -26,14 +30,26 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      */
     private final Font PLACEHOLDER_FONT = new Font("Verdana", Font.ITALIC, 12);
     private final Font INPUT_FONT = new Font("Verdana", Font.PLAIN, 12);
+    private Properties configuration;
+    private String configuredFolderForDownloadedMedia;
+    private String tmpFilesFolder;
+    private String logsFolder;
 
     private DownloadManager defaultDownloadManager;
-    private EventHandler defaultEventHandler;
-    private boolean gotInternetConnection;
 
     public Main() {
-        defaultEventHandler = new EventHandler();
-        gotInternetConnection = defaultEventHandler.checkInternetConnection();
+        // Load configuration
+        try {
+            configuration = loadConfiguration();
+        } catch (Exception e) {
+            createErrorDialog(this, e.getMessage(), "Fatal error");
+            System.exit(1);
+        }
+        
+        configuredFolderForDownloadedMedia = configuration.getProperty("download.folder");
+        tmpFilesFolder = configuration.getProperty("tmp.folder");
+        logsFolder = configuration.getProperty("logs.folder");
+        
         initComponents();
         defaultDownloadManager = new DownloadManager(this);
     }
@@ -289,19 +305,15 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         try {
             defaultDownloadManager.addDownloadToQueue(videoURLField.getText(), pathURLField.getText() + fileNameField.getText(), getSelectedFormatOption());
-            defaultDownloadManager.execute();
+            if (isWaitingForTasks()) {
+                defaultDownloadManager.execute();
+            }
         } catch (MalformedURLException ex) {
-            defaultEventHandler.createErrorDialog(this, "The inputted URL doesn't match a valid format", "Wrong URL format");
-            videoURLDownloadButton.setEnabled(true);
-            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            createErrorDialog(this, "The inputted URL doesn't match a valid format", "Wrong URL format");
         } catch (RuntimeException ex) {
-            defaultEventHandler.createErrorDialog(this, "The provided website is not supported", "Unsupported website");
-            videoURLDownloadButton.setEnabled(true);
-            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            createErrorDialog(this, "The provided website is not supported", "Unsupported website");
         } catch (Exception e) {
-            defaultEventHandler.createErrorDialog(this, "An error occured. Please try again.", "Unexpected error");
-            videoURLDownloadButton.setEnabled(true);
-            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            createErrorDialog(this, "An error occured. Please try again.", "Unexpected error");
         }
         videoURLDownloadButton.setEnabled(true);
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -405,7 +417,28 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         return format;
     }
 
+    public boolean isWaitingForTasks() {
+        return status.getText().equals("Ready");
+    }
+
     public void changeStatus(String newStatus) {
         status.setText(newStatus);
+    }
+
+    public static void createErrorDialog(JFrame frame, String content, String name) {
+        JOptionPane.showMessageDialog(frame,
+                content,
+                name,
+                JOptionPane.ERROR_MESSAGE);
+    }
+
+    private Properties loadConfiguration() throws Exception {
+        InputStream input = new FileInputStream("settings.conf");
+        if (input == null) {
+            throw new Exception("Configuration files could not be found");
+        }
+        Properties prop = new Properties();
+        prop.load(input);
+        return prop;
     }
 }

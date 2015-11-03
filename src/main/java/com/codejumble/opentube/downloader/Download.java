@@ -52,7 +52,6 @@ public class Download extends SwingWorker {
             /*
          Conversion performed here
          */
-        notify();
     }
 
     public void refreshProgress() {

@@ -28,8 +28,8 @@ public class DownloadManager extends SwingWorker {
         mainFrame = frame;
     }
 
-    public void addDownloadToQueue(String videoURL, String videoFileName, String endFormat) throws MalformedURLException {
-        Download download = new Download(videoURL, path + "asdada", endFormat);
+    public void addDownloadToQueue(String mediaURL, String mediaFileName, String endFormat) throws MalformedURLException {
+        Download download = new Download(mediaURL, path + mediaFileName, endFormat);
         downloads.add(download);
     }
 
@@ -48,11 +48,11 @@ public class DownloadManager extends SwingWorker {
                 }
             }
             mainFrame.changeStatus("Converting");
-            wait();
+            downloads.remove(e);
         }
         return null;
     }
-
+    
     @Override
     protected void done() {
         //When the job is done, switch the status
