@@ -11,15 +11,15 @@ import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.net.MalformedURLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Enumeration;
+import javax.swing.AbstractButton;
 import javax.swing.JOptionPane;
 
 /**
  *
  * @author lope115
  */
-public class Main extends javax.swing.JFrame implements PropertyChangeListener  {
+public class Main extends javax.swing.JFrame implements PropertyChangeListener {
 
     /**
      * Creates new form Main
@@ -32,10 +32,10 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener  
     private boolean gotInternetConnection;
 
     public Main() {
-        defaultDownloadManager = new DownloadManager();
         defaultEventHandler = new EventHandler();
         gotInternetConnection = defaultEventHandler.checkInternetConnection();
         initComponents();
+        defaultDownloadManager = new DownloadManager(this);
     }
 
     /**
@@ -47,7 +47,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener  
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        videoFormatButtonGroup = new javax.swing.ButtonGroup();
+        mediaFormatButtonGroup = new javax.swing.ButtonGroup();
         videoURLDownloadButton = new javax.swing.JButton();
         downloadProgressBar = new javax.swing.JProgressBar();
         videoURLField = new javax.swing.JTextField();
@@ -64,8 +64,8 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener  
         flvFormatOption = new javax.swing.JRadioButton();
         aviFormatOption = new javax.swing.JRadioButton();
         fileFormatLabel = new javax.swing.JLabel();
-        networkStatusLabel = new javax.swing.JLabel();
-        networkStatus = new javax.swing.JLabel();
+        statusLabel = new javax.swing.JLabel();
+        status = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("OpenTube v1.0 - www.codejumble.com");
@@ -161,23 +161,23 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener  
         });
         menuBar.add(aboutMenuButton);
 
-        videoFormatButtonGroup.add(mp4FormatOption);
+        mediaFormatButtonGroup.add(mp4FormatOption);
         mp4FormatOption.setSelected(true);
         mp4FormatOption.setText("mp4");
 
-        videoFormatButtonGroup.add(flvFormatOption);
+        mediaFormatButtonGroup.add(flvFormatOption);
         flvFormatOption.setText("flv");
 
-        videoFormatButtonGroup.add(aviFormatOption);
+        mediaFormatButtonGroup.add(aviFormatOption);
         aviFormatOption.setText("avi");
 
         fileFormatLabel.setFont(new java.awt.Font("Noto Sans", 1, 12)); // NOI18N
         fileFormatLabel.setText("Format");
 
-        networkStatusLabel.setText("Status:");
+        statusLabel.setText("Status:");
 
-        networkStatus.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
-        networkStatus.setText("Online");
+        status.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
+        status.setText("Ready");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -186,36 +186,39 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener  
             .addGroup(layout.createSequentialGroup()
                 .addGap(59, 59, 59)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(11, 11, 11)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(videoURLLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(pathURLLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
-                            .addComponent(fileURLLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(pathURLField)
-                            .addComponent(videoURLField)
-                            .addComponent(fileNameField, javax.swing.GroupLayout.Alignment.TRAILING))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(videoURLDownloadButton)
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(fileFormatLabel)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(mp4FormatOption)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(flvFormatOption)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(aviFormatOption)))
-                        .addGap(40, 40, 40))
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(downloadProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 765, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(52, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(networkStatusLabel)
-                            .addComponent(downloadProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 765, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(networkStatus)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(statusLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(status))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(11, 11, 11)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(videoURLLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(pathURLLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
+                                    .addComponent(fileURLLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(pathURLField)
+                                    .addComponent(videoURLField)
+                                    .addComponent(fileNameField, javax.swing.GroupLayout.Alignment.TRAILING))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(videoURLDownloadButton)
+                                .addGap(18, 18, 18)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(fileFormatLabel)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(mp4FormatOption)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(flvFormatOption)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(aviFormatOption)))))
+                        .addGap(40, 40, 40))))
             .addComponent(menuBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
@@ -244,8 +247,8 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener  
                 .addComponent(downloadProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(46, 46, 46)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(networkStatusLabel)
-                    .addComponent(networkStatus)))
+                    .addComponent(statusLabel)
+                    .addComponent(status)))
         );
 
         getAccessibleContext().setAccessibleDescription("");
@@ -285,11 +288,18 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener  
         videoURLDownloadButton.setEnabled(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         try {
-            defaultDownloadManager.addDownloadToQueue(videoURLField.getText(), pathURLField.getText() + fileNameField.getText());
-            defaultDownloadManager.download(this);
+            defaultDownloadManager.addDownloadToQueue(videoURLField.getText(), pathURLField.getText() + fileNameField.getText(), getSelectedFormatOption());
+            defaultDownloadManager.execute();
         } catch (MalformedURLException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             defaultEventHandler.createErrorDialog(this, "The inputted URL doesn't match a valid format", "Wrong URL format");
+            videoURLDownloadButton.setEnabled(true);
+            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        } catch (RuntimeException ex) {
+            defaultEventHandler.createErrorDialog(this, "The provided website is not supported", "Unsupported website");
+            videoURLDownloadButton.setEnabled(true);
+            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        } catch (Exception e) {
+            defaultEventHandler.createErrorDialog(this, "An error occured. Please try again.", "Unexpected error");
             videoURLDownloadButton.setEnabled(true);
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
@@ -316,10 +326,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener  
     }//GEN-LAST:event_helpMenuButtonActionPerformed
 
     private void aboutMenuButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuButtonActionPerformed
-        JOptionPane.showMessageDialog(this
-                , "OpenTube v1.0\nVisit www.codejumble.com"
-                , "About OpenTube"
-                , JOptionPane.PLAIN_MESSAGE);
+        JOptionPane.showMessageDialog(this, "OpenTube v1.0\nVisit www.codejumble.com", "About OpenTube", JOptionPane.PLAIN_MESSAGE);
     }//GEN-LAST:event_aboutMenuButtonActionPerformed
 
     /**
@@ -365,13 +372,13 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener  
     private javax.swing.JLabel fileURLLabel;
     private javax.swing.JRadioButton flvFormatOption;
     private javax.swing.JButton helpMenuButton;
+    private javax.swing.ButtonGroup mediaFormatButtonGroup;
     private javax.swing.JToolBar menuBar;
     private javax.swing.JRadioButton mp4FormatOption;
-    private javax.swing.JLabel networkStatus;
-    private javax.swing.JLabel networkStatusLabel;
     private javax.swing.JTextField pathURLField;
     private javax.swing.JLabel pathURLLabel;
-    private javax.swing.ButtonGroup videoFormatButtonGroup;
+    private javax.swing.JLabel status;
+    private javax.swing.JLabel statusLabel;
     private javax.swing.JButton videoURLDownloadButton;
     private javax.swing.JTextField videoURLField;
     private javax.swing.JLabel videoURLLabel1;
@@ -379,11 +386,26 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener  
 
     @Override
     public void propertyChange(PropertyChangeEvent pce) {
-         if ("progress" == pce.getPropertyName()) {
+        if ("progress".equals(pce.getPropertyName())) {
             int progress = (Integer) pce.getNewValue();
             downloadProgressBar.setValue(progress);
-            downloadProgressBar.repaint();
-            System.out.println("Completed: " + progress + "%");
-        } 
+        }
+    }
+
+    private String getSelectedFormatOption() {
+        String format = "mp4";
+        for (Enumeration<AbstractButton> buttons = mediaFormatButtonGroup.getElements(); buttons.hasMoreElements();) {
+            AbstractButton button = buttons.nextElement();
+
+            if (button.isSelected()) {
+                format = button.getText();
+            }
+        }
+
+        return format;
+    }
+
+    public void changeStatus(String newStatus) {
+        status.setText(newStatus);
     }
 }

@@ -21,13 +21,16 @@ public class Download extends SwingWorker {
     private final VGet v;
     private DownloadInfo downloadInfo;
     private File targetFile;
-    private double progress;
+    private int progress;
+    private String endFormat;
 
-    public Download(String videoURL, String path) throws MalformedURLException {
-        targetFile = new File(path);
+    public Download(String videoURL, String path, String endFormat) throws MalformedURLException {
+        targetFile = new File(path + "." + endFormat);
+        this.endFormat = endFormat;
         v = new VGet(new URL(videoURL), new File(path));
         v.setTarget(targetFile);
         progress = 0;
+        downloadInfo = v.getVideo().getInfo();
     }
 
     public VGet getV() {
@@ -43,15 +46,21 @@ public class Download extends SwingWorker {
 
     @Override
     protected void done() {
+        // If there is no need of conversion
         setProgress(100);
-        System.out.println("Task completed");
+        //Start conversion using Xuggle
+            /*
+         Conversion performed here
+         */
+        notify();
     }
 
     public void refreshProgress() {
-        DownloadInfo downloadInfo = v.getVideo().getInfo();
+        downloadInfo = v.getVideo().getInfo();
         if (downloadInfo != null && targetFile.exists()) {
-            double progress = ((double)targetFile.length() / downloadInfo.getLength());
-            setProgress(progress.intValu); //Percentage
+            double progressWithDecimals = ((double) targetFile.length() / downloadInfo.getLength());
+            progress = (int) Math.round(progressWithDecimals * 100); //Percentage
+            setProgress(progress);
         }
     }
 
