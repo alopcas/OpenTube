@@ -9,7 +9,6 @@ import com.codejumble.opentube.downloader.DownloadManager;
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Font;
-import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -24,8 +23,8 @@ import java.util.Enumeration;
 import java.util.Properties;
 import javax.swing.AbstractButton;
 import javax.swing.JFrame;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 /**
@@ -382,7 +381,15 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     }//GEN-LAST:event_quitItemActionPerformed
 
     private void settingsItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsItemActionPerformed
-        JOptionPane.showInputDialog(this, "Downloads folder", configuredFolderForDownloadedMedia, JOptionPane.OK_CANCEL_OPTION + JOptionPane.PLAIN_MESSAGE);
+        JTextField setting = new JTextField(configuredFolderForDownloadedMedia);
+        Object[] settings={
+          "Downloads folder" , setting  
+        };
+        
+        int option = JOptionPane.showConfirmDialog(null, settings, "Settings", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION){
+            configuration.setProperty("downloadFolder", setting.getText());
+        }
     }//GEN-LAST:event_settingsItemActionPerformed
 
     /**
@@ -481,7 +488,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
 
     private void initParameters() {
         String relativePath = configuration.getProperty("downloadFolder");
-        configuredFolderForDownloadedMedia = new File(relativePath).getAbsolutePath();
+        configuredFolderForDownloadedMedia = new File(relativePath).getAbsolutePath() + File.separator;
         tmpFilesFolder = configuration.getProperty("tmpFolder");
         logsFolder = configuration.getProperty("logsFolder");
         defaultDownloadManager = new DownloadManager(this, tmpFilesFolder, configuredFolderForDownloadedMedia);
