@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import javax.swing.AbstractButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 /**
@@ -390,7 +389,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
             "Downloads folder", setting
         };
 
-        int option = JOptionPane.showConfirmDialog(null, settings, "Settings", JOptionPane.PLAIN_MESSAGE);
+        int option = JOptionPane.showConfirmDialog(null, settings, "Settings", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             configuration.setProperty("downloadFolder", setting.getText());
             try {
@@ -398,7 +397,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+
         }
     }//GEN-LAST:event_settingsItemActionPerformed
 
