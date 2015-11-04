@@ -7,17 +7,26 @@ package com.codejumble.opentube;
 
 import com.codejumble.opentube.downloader.DownloadManager;
 import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.Font;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.util.Enumeration;
 import java.util.Properties;
 import javax.swing.AbstractButton;
 import javax.swing.JFrame;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 
 /**
  *
@@ -41,17 +50,20 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         // Load configuration
         try {
             configuration = loadConfiguration();
+        } catch (FileNotFoundException e) {
+            createErrorDialog(this, e.getMessage(), "Fatal error");
+            System.exit(1);
+        } catch (IOException e) {
+            createErrorDialog(this, e.getMessage(), "Fatal error");
+            System.exit(1);
         } catch (Exception e) {
             createErrorDialog(this, e.getMessage(), "Fatal error");
             System.exit(1);
         }
-        
-        configuredFolderForDownloadedMedia = configuration.getProperty("download.folder");
-        tmpFilesFolder = configuration.getProperty("tmp.folder");
-        logsFolder = configuration.getProperty("logs.folder");
-        
+
+        initParameters();
+
         initComponents();
-        defaultDownloadManager = new DownloadManager(this);
     }
 
     /**
@@ -72,16 +84,19 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         videoURLLabel1 = new javax.swing.JLabel();
         fileNameField = new javax.swing.JTextField();
         fileURLLabel = new javax.swing.JLabel();
-        menuBar = new javax.swing.JToolBar();
-        fileMenuButton = new javax.swing.JButton();
-        helpMenuButton = new javax.swing.JButton();
-        aboutMenuButton = new javax.swing.JButton();
         mp4FormatOption = new javax.swing.JRadioButton();
         flvFormatOption = new javax.swing.JRadioButton();
         aviFormatOption = new javax.swing.JRadioButton();
         fileFormatLabel = new javax.swing.JLabel();
         statusLabel = new javax.swing.JLabel();
         status = new javax.swing.JLabel();
+        menuBar = new javax.swing.JMenuBar();
+        fileMenu = new javax.swing.JMenu();
+        settingsItem = new javax.swing.JMenuItem();
+        quitItem = new javax.swing.JMenuItem();
+        helpMenu = new javax.swing.JMenu();
+        helpPagesItem = new javax.swing.JMenuItem();
+        aboutItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("OpenTube v1.0 - www.codejumble.com");
@@ -115,8 +130,9 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         pathURLLabel.setFont(new java.awt.Font("Verdana", 0, 11)); // NOI18N
         pathURLLabel.setText("Path");
 
-        pathURLField.setFont(new java.awt.Font("Verdana", 2, 11)); // NOI18N
-        pathURLField.setText("Destiny file path");
+        pathURLField.setEditable(false);
+        pathURLField.setFont(new java.awt.Font("Verdana", 0, 11)); // NOI18N
+        pathURLField.setText(configuredFolderForDownloadedMedia);
         pathURLField.setToolTipText("");
         pathURLField.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
@@ -145,38 +161,6 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         fileURLLabel.setFont(new java.awt.Font("Verdana", 0, 11)); // NOI18N
         fileURLLabel.setText("File");
 
-        menuBar.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        menuBar.setFloatable(false);
-        menuBar.setRollover(true);
-
-        fileMenuButton.setText("File");
-        fileMenuButton.setFocusable(false);
-        fileMenuButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        fileMenuButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        menuBar.add(fileMenuButton);
-
-        helpMenuButton.setText("Help");
-        helpMenuButton.setFocusable(false);
-        helpMenuButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        helpMenuButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        helpMenuButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                helpMenuButtonActionPerformed(evt);
-            }
-        });
-        menuBar.add(helpMenuButton);
-
-        aboutMenuButton.setText("About");
-        aboutMenuButton.setFocusable(false);
-        aboutMenuButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        aboutMenuButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        aboutMenuButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                aboutMenuButtonActionPerformed(evt);
-            }
-        });
-        menuBar.add(aboutMenuButton);
-
         mediaFormatButtonGroup.add(mp4FormatOption);
         mp4FormatOption.setSelected(true);
         mp4FormatOption.setText("mp4");
@@ -194,6 +178,48 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
 
         status.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
         status.setText("Ready");
+
+        fileMenu.setText("File");
+
+        settingsItem.setText("Settings");
+        settingsItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                settingsItemActionPerformed(evt);
+            }
+        });
+        fileMenu.add(settingsItem);
+
+        quitItem.setText("Quit");
+        quitItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                quitItemActionPerformed(evt);
+            }
+        });
+        fileMenu.add(quitItem);
+
+        menuBar.add(fileMenu);
+
+        helpMenu.setText("Help");
+
+        helpPagesItem.setText("Help pages");
+        helpPagesItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                helpPagesItemActionPerformed(evt);
+            }
+        });
+        helpMenu.add(helpPagesItem);
+
+        aboutItem.setText("About");
+        aboutItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                aboutItemActionPerformed(evt);
+            }
+        });
+        helpMenu.add(aboutItem);
+
+        menuBar.add(helpMenu);
+
+        setJMenuBar(menuBar);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -235,13 +261,11 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(aviFormatOption)))))
                         .addGap(40, 40, 40))))
-            .addComponent(menuBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(menuBar, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(38, 38, 38)
+                .addGap(63, 63, 63)
                 .addComponent(fileFormatLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -259,7 +283,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(fileNameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(fileURLLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 26, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(downloadProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(46, 46, 46)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -333,13 +357,33 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         }
     }//GEN-LAST:event_fileNameFieldFocusLost
 
-    private void helpMenuButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helpMenuButtonActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_helpMenuButtonActionPerformed
+    private void helpPagesItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helpPagesItemActionPerformed
+        try {
+            URI uri = new URL("http://www.codejumble.com").toURI();
+            Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+            if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+                try {
+                    desktop.browse(uri);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception ex) {
+            /* Log unexpected crash */
+        }
+    }//GEN-LAST:event_helpPagesItemActionPerformed
 
-    private void aboutMenuButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuButtonActionPerformed
+    private void aboutItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutItemActionPerformed
         JOptionPane.showMessageDialog(this, "OpenTube v1.0\nVisit www.codejumble.com", "About OpenTube", JOptionPane.PLAIN_MESSAGE);
-    }//GEN-LAST:event_aboutMenuButtonActionPerformed
+    }//GEN-LAST:event_aboutItemActionPerformed
+
+    private void quitItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_quitItemActionPerformed
+        System.exit(0);
+    }//GEN-LAST:event_quitItemActionPerformed
+
+    private void settingsItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsItemActionPerformed
+        JOptionPane.showInputDialog(this, "Downloads folder", configuredFolderForDownloadedMedia, JOptionPane.OK_CANCEL_OPTION + JOptionPane.PLAIN_MESSAGE);
+    }//GEN-LAST:event_settingsItemActionPerformed
 
     /**
      * @param args the command line arguments
@@ -375,20 +419,23 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton aboutMenuButton;
+    private javax.swing.JMenuItem aboutItem;
     private javax.swing.JRadioButton aviFormatOption;
     private javax.swing.JProgressBar downloadProgressBar;
     private javax.swing.JLabel fileFormatLabel;
-    private javax.swing.JButton fileMenuButton;
+    private javax.swing.JMenu fileMenu;
     private javax.swing.JTextField fileNameField;
     private javax.swing.JLabel fileURLLabel;
     private javax.swing.JRadioButton flvFormatOption;
-    private javax.swing.JButton helpMenuButton;
+    private javax.swing.JMenu helpMenu;
+    private javax.swing.JMenuItem helpPagesItem;
     private javax.swing.ButtonGroup mediaFormatButtonGroup;
-    private javax.swing.JToolBar menuBar;
+    private javax.swing.JMenuBar menuBar;
     private javax.swing.JRadioButton mp4FormatOption;
     private javax.swing.JTextField pathURLField;
     private javax.swing.JLabel pathURLLabel;
+    private javax.swing.JMenuItem quitItem;
+    private javax.swing.JMenuItem settingsItem;
     private javax.swing.JLabel status;
     private javax.swing.JLabel statusLabel;
     private javax.swing.JButton videoURLDownloadButton;
@@ -432,10 +479,18 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
                 JOptionPane.ERROR_MESSAGE);
     }
 
-    private Properties loadConfiguration() throws Exception {
-        InputStream input = new FileInputStream("settings.conf");
+    private void initParameters() {
+        String relativePath = configuration.getProperty("downloadFolder");
+        configuredFolderForDownloadedMedia = new File(relativePath).getAbsolutePath();
+        tmpFilesFolder = configuration.getProperty("tmpFolder");
+        logsFolder = configuration.getProperty("logsFolder");
+        defaultDownloadManager = new DownloadManager(this, tmpFilesFolder, configuredFolderForDownloadedMedia);
+    }
+
+    private Properties loadConfiguration() throws FileNotFoundException, IOException {
+        InputStream input = new FileInputStream("src" + File.separator + "main" + File.separator + "resources" + File.separator + "conf" + File.separator + "settings.conf");
         if (input == null) {
-            throw new Exception("Configuration files could not be found");
+            throw new FileNotFoundException("Configuration files could not be found");
         }
         Properties prop = new Properties();
         prop.load(input);

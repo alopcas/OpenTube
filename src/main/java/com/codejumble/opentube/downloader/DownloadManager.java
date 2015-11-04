@@ -18,18 +18,20 @@ import javax.swing.SwingWorker;
  */
 public class DownloadManager extends SwingWorker {
 
-    private String path;
+    private String downloadFolderPath;
+    private String tmpFolderPath;
     private List<Download> downloads;
     private final Main mainFrame;
 
-    public DownloadManager(Main frame) {
-        this.path = "C:" + File.separator + "Users" + File.separator + "lope115" + File.separator + "Desktop" + File.separator + ""; //This must be retrieved from conf
+    public DownloadManager(Main frame, String tmpFolderPath, String downloadFolderPath) {
+        this.downloadFolderPath = downloadFolderPath;
+        this.tmpFolderPath = tmpFolderPath;
         this.downloads = new ArrayList<>();
-        mainFrame = frame;
+        this.mainFrame = frame;
     }
 
     public void addDownloadToQueue(String mediaURL, String mediaFileName, String endFormat) throws MalformedURLException {
-        Download download = new Download(mediaURL, path + mediaFileName, endFormat);
+        Download download = new Download(mediaURL, downloadFolderPath + mediaFileName, endFormat);
         downloads.add(download);
     }
 
