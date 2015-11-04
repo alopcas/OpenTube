@@ -14,6 +14,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -21,6 +22,8 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.AbstractButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -42,6 +45,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     private String configuredFolderForDownloadedMedia;
     private String tmpFilesFolder;
     private String logsFolder;
+    private String settingsFilePath = "src" + File.separator + "main" + File.separator + "resources" + File.separator + "conf" + File.separator + "settings.conf";
 
     private DownloadManager defaultDownloadManager;
 
@@ -382,13 +386,19 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
 
     private void settingsItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsItemActionPerformed
         JTextField setting = new JTextField(configuredFolderForDownloadedMedia);
-        Object[] settings={
-          "Downloads folder" , setting  
+        Object[] settings = {
+            "Downloads folder", setting
         };
-        
-        int option = JOptionPane.showConfirmDialog(null, settings, "Settings", JOptionPane.OK_CANCEL_OPTION);
-        if (option == JOptionPane.OK_OPTION){
+
+        int option = JOptionPane.showConfirmDialog(null, settings, "Settings", JOptionPane.PLAIN_MESSAGE);
+        if (option == JOptionPane.OK_OPTION) {
             configuration.setProperty("downloadFolder", setting.getText());
+            try {
+                FileOutputStream writer = new FileOutputStream(settingsFilePath);
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
         }
     }//GEN-LAST:event_settingsItemActionPerformed
 
@@ -495,7 +505,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     }
 
     private Properties loadConfiguration() throws FileNotFoundException, IOException {
-        InputStream input = new FileInputStream("src" + File.separator + "main" + File.separator + "resources" + File.separator + "conf" + File.separator + "settings.conf");
+        InputStream input = new FileInputStream(settingsFilePath);
         if (input == null) {
             throw new FileNotFoundException("Configuration files could not be found");
         }

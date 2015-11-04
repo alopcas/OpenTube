@@ -25,7 +25,7 @@ public class Download extends SwingWorker {
     private String endFormat;
 
     public Download(String videoURL, String path, String endFormat) throws MalformedURLException {
-        targetFile = new File(path + "." + endFormat);
+        targetFile = new File("/home/alberto/Desktop/"+ "sdsd" + "." + endFormat);
         this.endFormat = endFormat;
         v = new VGet(new URL(videoURL), new File(path));
         v.setTarget(targetFile);
