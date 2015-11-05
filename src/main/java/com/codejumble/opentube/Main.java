@@ -1,5 +1,5 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
+ * To change this license header, choose License Headers in Project PropertiesConfiguration.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
@@ -12,22 +12,22 @@ import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Enumeration;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.AbstractButton;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
+import javax.swing.SwingWorker;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.io.FileUtils;
 
 /**
  *
@@ -38,13 +38,19 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     /**
      * Creates new form Main
      */
+    public static String SOFTWARE_VERSION = "0.1";
+
     private final Font PLACEHOLDER_FONT = new Font("Verdana", Font.ITALIC, 12);
     private final Font INPUT_FONT = new Font("Verdana", Font.PLAIN, 12);
-    private Properties configuration;
+
+    private PropertiesConfiguration configuration;
+    private ImageIcon appLogo;
+
     private String configuredFolderForDownloadedMedia;
     private String tmpFilesFolder;
     private String logsFolder;
-    private String settingsFilePath = "src" + File.separator + "main" + File.separator + "resources" + File.separator + "conf" + File.separator + "settings.conf";
+    private String settingsFilePath = "conf" + File.separator + "settings.conf";
+            //"src" + File.separator + "main" + File.separator + "resources" + File.separator + "conf" + File.separator + "settings.conf";
 
     private DownloadManager defaultDownloadManager;
 
@@ -52,10 +58,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         // Load configuration
         try {
             configuration = loadConfiguration();
-        } catch (FileNotFoundException e) {
-            createErrorDialog(this, e.getMessage(), "Fatal error");
-            System.exit(1);
-        } catch (IOException e) {
+        } catch (ConfigurationException e) {
             createErrorDialog(this, e.getMessage(), "Fatal error");
             System.exit(1);
         } catch (Exception e) {
@@ -82,26 +85,35 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         downloadProgressBar = new javax.swing.JProgressBar();
         videoURLField = new javax.swing.JTextField();
         pathURLLabel = new javax.swing.JLabel();
-        pathURLField = new javax.swing.JTextField();
+        pathField = new javax.swing.JTextField();
         videoURLLabel1 = new javax.swing.JLabel();
         fileNameField = new javax.swing.JTextField();
+        resetVideoFileName();
         fileURLLabel = new javax.swing.JLabel();
         mp4FormatOption = new javax.swing.JRadioButton();
-        flvFormatOption = new javax.swing.JRadioButton();
+        aacFormatOption = new javax.swing.JRadioButton();
         aviFormatOption = new javax.swing.JRadioButton();
         fileFormatLabel = new javax.swing.JLabel();
         statusLabel = new javax.swing.JLabel();
         status = new javax.swing.JLabel();
+        mp3FormatOption = new javax.swing.JRadioButton();
+        flvFormatOption = new javax.swing.JRadioButton();
+        oggFormatOption = new javax.swing.JRadioButton();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         settingsItem = new javax.swing.JMenuItem();
+        importItem = new javax.swing.JMenuItem();
         quitItem = new javax.swing.JMenuItem();
+        toolsMenu = new javax.swing.JMenu();
+        clearItem = new javax.swing.JMenuItem();
+        queueItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
         helpPagesItem = new javax.swing.JMenuItem();
         aboutItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("OpenTube v1.0 - www.codejumble.com");
+        setTitle("OpenTube v"+SOFTWARE_VERSION + "- www.codejumble.com");
+        setIconImage(getIconImage());
         setName("OpenTubeMainFrame"); // NOI18N
         setResizable(false);
 
@@ -132,16 +144,16 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         pathURLLabel.setFont(new java.awt.Font("Verdana", 0, 11)); // NOI18N
         pathURLLabel.setText("Path");
 
-        pathURLField.setEditable(false);
-        pathURLField.setFont(new java.awt.Font("Verdana", 0, 11)); // NOI18N
-        pathURLField.setText(configuredFolderForDownloadedMedia);
-        pathURLField.setToolTipText("");
-        pathURLField.addFocusListener(new java.awt.event.FocusAdapter() {
+        pathField.setEditable(false);
+        pathField.setFont(new java.awt.Font("Verdana", 0, 11)); // NOI18N
+        pathField.setText(configuredFolderForDownloadedMedia);
+        pathField.setToolTipText("");
+        pathField.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                pathURLFieldFocusGained(evt);
+                pathFieldFocusGained(evt);
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
-                pathURLFieldFocusLost(evt);
+                pathFieldFocusLost(evt);
             }
         });
 
@@ -167,8 +179,8 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         mp4FormatOption.setSelected(true);
         mp4FormatOption.setText("mp4");
 
-        mediaFormatButtonGroup.add(flvFormatOption);
-        flvFormatOption.setText("flv");
+        mediaFormatButtonGroup.add(aacFormatOption);
+        aacFormatOption.setText("aac");
 
         mediaFormatButtonGroup.add(aviFormatOption);
         aviFormatOption.setText("avi");
@@ -181,6 +193,15 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         status.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
         status.setText("Ready");
 
+        mediaFormatButtonGroup.add(mp3FormatOption);
+        mp3FormatOption.setText("mp3");
+
+        mediaFormatButtonGroup.add(flvFormatOption);
+        flvFormatOption.setText("flv");
+
+        mediaFormatButtonGroup.add(oggFormatOption);
+        oggFormatOption.setText("ogg");
+
         fileMenu.setText("File");
 
         settingsItem.setText("Settings");
@@ -191,6 +212,14 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         });
         fileMenu.add(settingsItem);
 
+        importItem.setText("Import list...");
+        importItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                importItemActionPerformed(evt);
+            }
+        });
+        fileMenu.add(importItem);
+
         quitItem.setText("Quit");
         quitItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -200,6 +229,26 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         fileMenu.add(quitItem);
 
         menuBar.add(fileMenu);
+
+        toolsMenu.setText("Tools");
+
+        clearItem.setText("Clear cache");
+        clearItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearItemActionPerformed(evt);
+            }
+        });
+        toolsMenu.add(clearItem);
+
+        queueItem.setText("Download queue");
+        queueItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                queueItemActionPerformed(evt);
+            }
+        });
+        toolsMenu.add(queueItem);
+
+        menuBar.add(toolsMenu);
 
         helpMenu.setText("Help");
 
@@ -234,35 +283,40 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
                         .addComponent(downloadProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 765, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addContainerGap(52, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(statusLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(status)
+                        .addGap(77, 77, 77))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(11, 11, 11)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(videoURLLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(pathURLLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
+                            .addComponent(fileURLLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(pathField)
+                            .addComponent(videoURLField)
+                            .addComponent(fileNameField, javax.swing.GroupLayout.Alignment.TRAILING))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(videoURLDownloadButton)
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(fileFormatLabel)
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(statusLabel)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(status))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(11, 11, 11)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(videoURLLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(pathURLLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
-                                    .addComponent(fileURLLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(mp4FormatOption)
+                                    .addComponent(mp3FormatOption))
+                                .addGap(2, 2, 2)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(aacFormatOption)
+                                    .addComponent(flvFormatOption))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(pathURLField)
-                                    .addComponent(videoURLField)
-                                    .addComponent(fileNameField, javax.swing.GroupLayout.Alignment.TRAILING))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(videoURLDownloadButton)
-                                .addGap(18, 18, 18)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(fileFormatLabel)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(mp4FormatOption)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(flvFormatOption)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(aviFormatOption)))))
-                        .addGap(40, 40, 40))))
+                                    .addComponent(aviFormatOption)
+                                    .addComponent(oggFormatOption))))
+                        .addGap(36, 36, 36))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -270,22 +324,31 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
                 .addGap(63, 63, 63)
                 .addComponent(fileFormatLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(videoURLDownloadButton)
-                    .addComponent(videoURLField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(videoURLLabel1)
-                    .addComponent(mp4FormatOption)
-                    .addComponent(flvFormatOption)
-                    .addComponent(aviFormatOption))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(pathURLField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(pathURLLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(fileNameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(fileURLLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(videoURLDownloadButton)
+                                .addComponent(videoURLField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(videoURLLabel1))
+                            .addComponent(mp4FormatOption))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(pathField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(pathURLLabel))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(mp3FormatOption)
+                                .addComponent(aacFormatOption)
+                                .addComponent(oggFormatOption))))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(flvFormatOption)
+                        .addComponent(aviFormatOption)))
+                .addGap(11, 11, 11)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(fileURLLabel)
+                    .addComponent(fileNameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 16, Short.MAX_VALUE)
                 .addComponent(downloadProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(46, 46, 46)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -302,6 +365,9 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         if (videoURLField.getText().length() <= 0 || videoURLField.getText().equals("Video URL")) {
             videoURLField.setFont(INPUT_FONT);
             videoURLField.setText("");
+            if (fileNameField.getText().length() <= 0 || fileNameField.getText().equals("Destiny file name")) {
+                resetVideoFileName();
+            }
         }
     }//GEN-LAST:event_videoURLFieldFocusGained
 
@@ -312,37 +378,40 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         }
     }//GEN-LAST:event_videoURLFieldFocusLost
 
-    private void pathURLFieldFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pathURLFieldFocusGained
-        if (pathURLField.getText().length() <= 0 || pathURLField.getText().equals("Destiny file path")) {
-            pathURLField.setFont(INPUT_FONT);
-            pathURLField.setText("");
+    private void pathFieldFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pathFieldFocusGained
+        if (pathField.getText().length() <= 0 || pathField.getText().equals("Destiny file path")) {
+            pathField.setFont(INPUT_FONT);
+            pathField.setText("");
         }
-    }//GEN-LAST:event_pathURLFieldFocusGained
+    }//GEN-LAST:event_pathFieldFocusGained
 
-    private void pathURLFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pathURLFieldFocusLost
-        if (pathURLField.getText().length() <= 0 || pathURLField.getText().equals("Destiny file path")) {
-            pathURLField.setFont(PLACEHOLDER_FONT);
-            pathURLField.setText("Destiny file path");
+    private void pathFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pathFieldFocusLost
+        if (pathField.getText().length() <= 0 || pathField.getText().equals("Destiny file path")) {
+            pathField.setFont(PLACEHOLDER_FONT);
+            pathField.setText("Destiny file path");
         }
-    }//GEN-LAST:event_pathURLFieldFocusLost
+    }//GEN-LAST:event_pathFieldFocusLost
 
     private void videoURLDownloadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_videoURLDownloadButtonActionPerformed
         videoURLDownloadButton.setEnabled(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         try {
-            defaultDownloadManager.addDownloadToQueue(videoURLField.getText(), pathURLField.getText() + fileNameField.getText(), getSelectedFormatOption());
-            if (isWaitingForTasks()) {
-                defaultDownloadManager.execute();
+            if (isWaitingForTasks() && defaultDownloadManager.getState().equals(SwingWorker.StateValue.DONE)) {
+                defaultDownloadManager = new DownloadManager(this, tmpFilesFolder, configuredFolderForDownloadedMedia);
             }
+            defaultDownloadManager.addDownloadToQueue(videoURLField.getText(), fileNameField.getText(), getSelectedFormatOption());
+            defaultDownloadManager.execute();
+
         } catch (MalformedURLException ex) {
             createErrorDialog(this, "The inputted URL doesn't match a valid format", "Wrong URL format");
         } catch (RuntimeException ex) {
             createErrorDialog(this, "The provided website is not supported", "Unsupported website");
         } catch (Exception e) {
-            createErrorDialog(this, "An error occured. Please try again.", "Unexpected error");
+            createErrorDialog(this, e.getMessage(), "Unexpected error");
         }
         videoURLDownloadButton.setEnabled(true);
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        resetVideoFileName();
     }//GEN-LAST:event_videoURLDownloadButtonActionPerformed
 
     private void fileNameFieldFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fileNameFieldFocusGained
@@ -376,7 +445,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     }//GEN-LAST:event_helpPagesItemActionPerformed
 
     private void aboutItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutItemActionPerformed
-        JOptionPane.showMessageDialog(this, "OpenTube v1.0\nVisit www.codejumble.com", "About OpenTube", JOptionPane.PLAIN_MESSAGE);
+        JOptionPane.showMessageDialog(this, "OpenTube v" + SOFTWARE_VERSION + "\nVisit www.codejumble.com", "About OpenTube", JOptionPane.PLAIN_MESSAGE);
     }//GEN-LAST:event_aboutItemActionPerformed
 
     private void quitItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_quitItemActionPerformed
@@ -393,13 +462,31 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         if (option == JOptionPane.OK_OPTION) {
             configuration.setProperty("downloadFolder", setting.getText());
             try {
-                FileOutputStream writer = new FileOutputStream(settingsFilePath);
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                configuration.save();
+            } catch (ConfigurationException ex) {
+                createErrorDialog(this, ex.getMessage(), "Fatal error");
             }
-
         }
     }//GEN-LAST:event_settingsItemActionPerformed
+
+    private void importItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importItemActionPerformed
+        createErrorDialog(this, "This operation is not supported in this version", "Fatal error");
+        throw new UnsupportedOperationException();
+    }//GEN-LAST:event_importItemActionPerformed
+
+    private void clearItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearItemActionPerformed
+        try {
+            //Clear tmp folder
+            FileUtils.cleanDirectory(new File(tmpFilesFolder));
+        } catch (IOException ex) {
+            createErrorDialog(this, ex.getMessage(), "Fatal error");
+        }
+    }//GEN-LAST:event_clearItemActionPerformed
+
+    private void queueItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_queueItemActionPerformed
+        createErrorDialog(this, "This operation is not supported in this version", "Fatal error");
+        throw new UnsupportedOperationException();
+    }//GEN-LAST:event_queueItemActionPerformed
 
     /**
      * @param args the command line arguments
@@ -429,14 +516,18 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> {
-            new Main().setVisible(true);
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new Main().setVisible(true);
+            }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JRadioButton aacFormatOption;
     private javax.swing.JMenuItem aboutItem;
     private javax.swing.JRadioButton aviFormatOption;
+    private javax.swing.JMenuItem clearItem;
     private javax.swing.JProgressBar downloadProgressBar;
     private javax.swing.JLabel fileFormatLabel;
     private javax.swing.JMenu fileMenu;
@@ -445,15 +536,20 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     private javax.swing.JRadioButton flvFormatOption;
     private javax.swing.JMenu helpMenu;
     private javax.swing.JMenuItem helpPagesItem;
+    private javax.swing.JMenuItem importItem;
     private javax.swing.ButtonGroup mediaFormatButtonGroup;
     private javax.swing.JMenuBar menuBar;
+    private javax.swing.JRadioButton mp3FormatOption;
     private javax.swing.JRadioButton mp4FormatOption;
-    private javax.swing.JTextField pathURLField;
+    private javax.swing.JRadioButton oggFormatOption;
+    private javax.swing.JTextField pathField;
     private javax.swing.JLabel pathURLLabel;
+    private javax.swing.JMenuItem queueItem;
     private javax.swing.JMenuItem quitItem;
     private javax.swing.JMenuItem settingsItem;
     private javax.swing.JLabel status;
     private javax.swing.JLabel statusLabel;
+    private javax.swing.JMenu toolsMenu;
     private javax.swing.JButton videoURLDownloadButton;
     private javax.swing.JTextField videoURLField;
     private javax.swing.JLabel videoURLLabel1;
@@ -496,20 +592,23 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     }
 
     private void initParameters() {
-        String relativePath = configuration.getProperty("downloadFolder");
-        configuredFolderForDownloadedMedia = new File(relativePath).getAbsolutePath() + File.separator;
-        tmpFilesFolder = configuration.getProperty("tmpFolder");
-        logsFolder = configuration.getProperty("logsFolder");
+        String relativePathToDownloadFolder = (String) configuration.getProperty("downloadFolder");
+        configuredFolderForDownloadedMedia = new File(relativePathToDownloadFolder).getAbsolutePath() + File.separator;
+        String relativePathToTmpFolder = (String) configuration.getProperty("tmpFolder");
+        tmpFilesFolder = new File(relativePathToTmpFolder).getAbsolutePath() + File.separator;
+        String relativePathToLogsFolder = (String) configuration.getProperty("logsFolder");
+        logsFolder = new File(relativePathToLogsFolder).getAbsolutePath() + File.separator;
         defaultDownloadManager = new DownloadManager(this, tmpFilesFolder, configuredFolderForDownloadedMedia);
+//        ImageIcon img = new ImageIcon("C:\\Users\\lope115\\Documents\\NetBeansProjects\\tmpot\\src\\main\\resources\\media" + File.separator + "icon.png");
+//        this.appLogo = img;
     }
 
-    private Properties loadConfiguration() throws FileNotFoundException, IOException {
-        InputStream input = new FileInputStream(settingsFilePath);
-        if (input == null) {
-            throw new FileNotFoundException("Configuration files could not be found");
-        }
-        Properties prop = new Properties();
-        prop.load(input);
+    private PropertiesConfiguration loadConfiguration() throws ConfigurationException {
+        PropertiesConfiguration prop = new PropertiesConfiguration(settingsFilePath);
         return prop;
+    }
+
+    private void resetVideoFileName() {
+        fileNameField.setText("video-" + new SimpleDateFormat("yyyyMMdd HHmmssSSS").format(new Date()));
     }
 }

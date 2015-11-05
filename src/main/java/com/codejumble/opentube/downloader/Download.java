@@ -24,8 +24,8 @@ public class Download extends SwingWorker {
     private int progress;
     private String endFormat;
 
-    public Download(String videoURL, String path, String endFormat) throws MalformedURLException {
-        targetFile = new File(path + "." + endFormat);
+    public Download(String videoURL, String path, String targetFileName, String endFormat) throws MalformedURLException {
+        targetFile = new File(path + File.separator + targetFileName +".mp4");
         this.endFormat = endFormat;
         v = new VGet(new URL(videoURL), new File(path));
         v.setTarget(targetFile);
@@ -37,6 +37,40 @@ public class Download extends SwingWorker {
         return v;
     }
 
+    public File getTargetFile() {
+        return targetFile;
+    }
+
+    public String getEndFormat() {
+        return endFormat;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 41 * hash + (this.targetFile != null ? this.targetFile.hashCode() : 0);
+        hash = 41 * hash + (this.endFormat != null ? this.endFormat.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Download other = (Download) obj;
+        if (this.targetFile != other.targetFile && (this.targetFile == null || !this.targetFile.equals(other.targetFile))) {
+            return false;
+        }
+        if ((this.endFormat == null) ? (other.endFormat != null) : !this.endFormat.equals(other.endFormat)) {
+            return false;
+        }
+        return true;
+    }
+
     @Override
     protected Object doInBackground() {
         setProgress(progress);
@@ -46,12 +80,7 @@ public class Download extends SwingWorker {
 
     @Override
     protected void done() {
-        // If there is no need of conversion
         setProgress(100);
-        //Start conversion using Xuggle
-            /*
-         Conversion performed here
-         */
     }
 
     public void refreshProgress() {
@@ -59,7 +88,7 @@ public class Download extends SwingWorker {
         if (downloadInfo != null && targetFile.exists()) {
             double progressWithDecimals = ((double) targetFile.length() / downloadInfo.getLength());
             progress = (int) Math.round(progressWithDecimals * 100); //Percentage
-            setProgress(progress);
+            setProgress(Math.min(progress, 99));
         }
     }
 
