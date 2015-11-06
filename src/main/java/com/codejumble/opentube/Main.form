@@ -326,6 +326,7 @@
           <ComponentRef name="mediaFormatButtonGroup"/>
         </Property>
         <Property name="text" type="java.lang.String" value="aac"/>
+        <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JRadioButton" name="aviFormatOption">
@@ -334,6 +335,7 @@
           <ComponentRef name="mediaFormatButtonGroup"/>
         </Property>
         <Property name="text" type="java.lang.String" value="avi"/>
+        <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="fileFormatLabel">
@@ -363,6 +365,7 @@
           <ComponentRef name="mediaFormatButtonGroup"/>
         </Property>
         <Property name="text" type="java.lang.String" value="mp3"/>
+        <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JRadioButton" name="flvFormatOption">
@@ -371,6 +374,7 @@
           <ComponentRef name="mediaFormatButtonGroup"/>
         </Property>
         <Property name="text" type="java.lang.String" value="flv"/>
+        <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JRadioButton" name="oggFormatOption">
@@ -379,6 +383,7 @@
           <ComponentRef name="mediaFormatButtonGroup"/>
         </Property>
         <Property name="text" type="java.lang.String" value="ogg"/>
+        <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
   </SubComponents>

@@ -50,7 +50,6 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     private String tmpFilesFolder;
     private String logsFolder;
     private String settingsFilePath = "conf" + File.separator + "settings.conf";
-            //"src" + File.separator + "main" + File.separator + "resources" + File.separator + "conf" + File.separator + "settings.conf";
 
     private DownloadManager defaultDownloadManager;
 
@@ -181,9 +180,11 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
 
         mediaFormatButtonGroup.add(aacFormatOption);
         aacFormatOption.setText("aac");
+        aacFormatOption.setEnabled(false);
 
         mediaFormatButtonGroup.add(aviFormatOption);
         aviFormatOption.setText("avi");
+        aviFormatOption.setEnabled(false);
 
         fileFormatLabel.setFont(new java.awt.Font("Noto Sans", 1, 12)); // NOI18N
         fileFormatLabel.setText("Format");
@@ -195,12 +196,15 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
 
         mediaFormatButtonGroup.add(mp3FormatOption);
         mp3FormatOption.setText("mp3");
+        mp3FormatOption.setEnabled(false);
 
         mediaFormatButtonGroup.add(flvFormatOption);
         flvFormatOption.setText("flv");
+        flvFormatOption.setEnabled(false);
 
         mediaFormatButtonGroup.add(oggFormatOption);
         oggFormatOption.setText("ogg");
+        oggFormatOption.setEnabled(false);
 
         fileMenu.setText("File");
 
