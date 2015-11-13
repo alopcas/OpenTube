@@ -134,7 +134,7 @@ public class Download extends SwingWorker {
     /**
      * Runs the download in the background.
      *
-     * @return
+     * @return null
      */
     @Override
     protected Object doInBackground() {
