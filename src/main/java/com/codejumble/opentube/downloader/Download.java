@@ -1,7 +1,22 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * *****************************************************************************
+ * Copyright (c) 2015 CodeJumble.com. All rights reserved.
+ *
+ * This file is part of OpenTube - www.codejumble.com
+ *
+ * OpenTube is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * OpenTube is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with OpenTube. If not, see <http://www.gnu.org/licenses/>.
+ * *****************************************************************************
  */
 package com.codejumble.opentube.downloader;
 
@@ -13,8 +28,10 @@ import java.net.URL;
 import javax.swing.SwingWorker;
 
 /**
+ * Class implementing single downloads logic. Each download contains the core
+ * information such as temporal file path, file format, or current progress.
  *
- * @author lope115
+ * @author alopcas
  */
 public class Download extends SwingWorker {
 
@@ -24,8 +41,18 @@ public class Download extends SwingWorker {
     private int progress;
     private String endFormat;
 
+    /**
+     * Initilizes a download with the given fields.
+     *
+     * @param videoURL URL of the video on the internet
+     * @param path Folder where the temporal file will be alocated
+     * @param targetFileName Name of the end file
+     * @param endFormat Output format of the program
+     * @throws MalformedURLException when the given URL does not follow the
+     * standards (https://url.spec.whatwg.org/)
+     */
     public Download(String videoURL, String path, String targetFileName, String endFormat) throws MalformedURLException {
-        targetFile = new File(path + File.separator + targetFileName +".mp4");
+        targetFile = new File(path + File.separator + targetFileName + ".mp4");
         this.endFormat = endFormat;
         v = new VGet(new URL(videoURL), new File(path));
         v.setTarget(targetFile);
@@ -33,18 +60,39 @@ public class Download extends SwingWorker {
         downloadInfo = v.getVideo().getInfo();
     }
 
+    /**
+     * Returns the VGet of the current download. This element contains very
+     * important information
+     *
+     * @return VGet object of the download
+     */
     public VGet getV() {
         return v;
     }
 
+    /**
+     * Returns the temporal file
+     *
+     * @return temporal file
+     */
     public File getTargetFile() {
         return targetFile;
     }
 
+    /**
+     * Returns the output format desired by the user
+     *
+     * @return output format
+     */
     public String getEndFormat() {
         return endFormat;
     }
 
+    /**
+     * Returns the hashcode
+     *
+     * @return hashcode
+     */
     @Override
     public int hashCode() {
         int hash = 3;
@@ -53,6 +101,12 @@ public class Download extends SwingWorker {
         return hash;
     }
 
+    /**
+     * Says if current download is equal to the one inputed
+     *
+     * @param obj other download object
+     * @return true if equal
+     */
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -71,6 +125,11 @@ public class Download extends SwingWorker {
         return true;
     }
 
+    /**
+     * Runs the download in the background.
+     *
+     * @return
+     */
     @Override
     protected Object doInBackground() {
         setProgress(progress);
@@ -78,11 +137,18 @@ public class Download extends SwingWorker {
         return null;
     }
 
+    /**
+     * Sets the progress to 100 and finishes.
+     */
     @Override
     protected void done() {
         setProgress(100);
     }
 
+    /**
+     * Updates the progress value of the download using temporal file size and
+     * download file size.
+     */
     public void refreshProgress() {
         downloadInfo = v.getVideo().getInfo();
         if (downloadInfo != null && targetFile.exists()) {
