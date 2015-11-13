@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  * @author alopcas
  */
 public class Download extends SwingWorker {
-
+    
     private final VGet v;
     private DownloadInfo downloadInfo;
     private File targetFile;
@@ -45,6 +45,7 @@ public class Download extends SwingWorker {
 
     //Logging 
     Logger logger = LoggerFactory.getLogger(Download.class);
+
     /**
      * Initilizes a download with the given fields.
      *
@@ -164,5 +165,5 @@ public class Download extends SwingWorker {
             setProgress(Math.min(progress, 99));
         }
     }
-
+    
 }

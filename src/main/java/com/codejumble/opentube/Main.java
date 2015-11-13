@@ -93,9 +93,9 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
             createErrorDialog(this, e.getMessage(), "Fatal error");
             System.exit(1);
         }
-
+        
         initParameters();
-
+        
         initComponents();
     }
 
@@ -458,7 +458,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
             }
             defaultDownloadManager.addDownloadToQueue(videoURLField.getText(), fileNameField.getText(), getSelectedFormatOption());
             defaultDownloadManager.execute();
-
+            
         } catch (MalformedURLException ex) {
             createErrorDialog(this, "The inputted URL doesn't match a valid format", "Wrong URL format");
         } catch (RuntimeException ex) {
@@ -541,7 +541,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         Object[] settings = {
             "Downloads folder", setting
         };
-
+        
         int option = JOptionPane.showConfirmDialog(null, settings, "Settings", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             configuration.setProperty("downloadFolder", setting.getText());
@@ -679,12 +679,12 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         String format = "mp4";
         for (Enumeration<AbstractButton> buttons = mediaFormatButtonGroup.getElements(); buttons.hasMoreElements();) {
             AbstractButton button = buttons.nextElement();
-
+            
             if (button.isSelected()) {
                 format = button.getText();
             }
         }
-
+        
         return format;
     }
 
