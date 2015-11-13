@@ -41,21 +41,30 @@ public class DownloadManager extends SwingWorker {
     private List<Download> downloads;
     private final Main mainFrame;
 
+    private int downloadQueueSize;
+    private int currentOnGoingDownload;
+
     //Logging 
     Logger logger = LoggerFactory.getLogger(Download.class);
 
     public DownloadManager(Main frame, String tmpFolderPath, String downloadFolderPath) {
         logger.info("Initilizing the download manager");
-        this.downloadFolder = new File(downloadFolderPath);
-        this.tmpFolder = new File(tmpFolderPath);
-        this.downloads = new ArrayList<Download>();
-        this.mainFrame = frame;
+        
+        downloadFolder = new File(downloadFolderPath);
+        tmpFolder = new File(tmpFolderPath);
+        downloads = new ArrayList<Download>();
+        mainFrame = frame;
+        downloadQueueSize = 0;
+        currentOnGoingDownload = 0;
     }
 
     public void addDownloadToQueue(String mediaURL, String mediaFileName, String endFormat) throws MalformedURLException {
         logger.info("Adding download to queue with values URL={}, output file={}", mediaURL, downloadFolder.getAbsolutePath() + mediaFileName + endFormat);
         Download download = new Download(mediaURL, tmpFolder.getAbsolutePath(), mediaFileName, endFormat);
         downloads.add(download);
+        // Update the view 
+        downloadQueueSize++;
+        mainFrame.updateDownloadQueueStatus(currentOnGoingDownload, downloadQueueSize);
     }
 
     @Override
@@ -64,10 +73,18 @@ public class DownloadManager extends SwingWorker {
             logger.info("Starting the download queue...");
             for (int i = 0; i < downloads.size(); i++) {
                 logger.info("Starting download number {}", i);
-                Download e = downloads.get(i);
+                currentOnGoingDownload = i+1;// We want to show 1/1, not 0/0
+                Download e = downloads.get(i); 
+
+                //Update status
                 mainFrame.changeStatus("Downloading");
+                mainFrame.updateDownloadQueueStatus(currentOnGoingDownload, downloadQueueSize);
                 e.addPropertyChangeListener(mainFrame);
+
+                //And start downloading in another thread
                 e.execute();
+
+                //Refresh the progress every 800 ms
                 while (e.getProgress() < 100) {
                     e.refreshProgress();
                     try {
@@ -88,6 +105,7 @@ public class DownloadManager extends SwingWorker {
 //                while (reader.readPacket() == null)
 //   ;
 //            }
+
                 //Move downloaded file to final destination
                 logger.info("Moving file to downloads folder...");
                 mainFrame.changeStatus("Locating");

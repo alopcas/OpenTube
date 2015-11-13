@@ -140,7 +140,11 @@ public class Download extends SwingWorker {
     protected Object doInBackground() {
         logger.info("Starting download. Output file={}", this.targetFile.getName());
         setProgress(progress);
-        v.download();
+        try {
+            v.download();
+        } catch (Exception e) {
+            logger.error("Error with message {}", e.getMessage());
+        }
         return null;
     }
 

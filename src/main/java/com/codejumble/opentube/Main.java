@@ -93,9 +93,9 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
             createErrorDialog(this, e.getMessage(), "Fatal error");
             System.exit(1);
         }
-        
+
         initParameters();
-        
+
         initComponents();
     }
 
@@ -124,6 +124,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         mp3FormatOption = new javax.swing.JRadioButton();
         flvFormatOption = new javax.swing.JRadioButton();
         oggFormatOption = new javax.swing.JRadioButton();
+        downloadQueueProgress = new javax.swing.JLabel();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         settingsItem = new javax.swing.JMenuItem();
@@ -232,6 +233,8 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         oggFormatOption.setText("ogg");
         oggFormatOption.setEnabled(false);
 
+        downloadQueueProgress.setText("0 of 0");
+
         fileMenu.setText("File");
 
         settingsItem.setText("Settings");
@@ -313,12 +316,6 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
                         .addComponent(downloadProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 765, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addContainerGap(52, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(statusLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(status)
-                        .addGap(77, 77, 77))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(11, 11, 11)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(videoURLLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -347,6 +344,14 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
                                     .addComponent(aviFormatOption)
                                     .addComponent(oggFormatOption))))
                         .addGap(36, 36, 36))))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(26, 26, 26)
+                .addComponent(downloadQueueProgress)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(statusLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(status)
+                .addGap(77, 77, 77))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -383,7 +388,8 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
                 .addGap(46, 46, 46)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(statusLabel)
-                    .addComponent(status)))
+                    .addComponent(status)
+                    .addComponent(downloadQueueProgress)))
         );
 
         getAccessibleContext().setAccessibleDescription("");
@@ -395,7 +401,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * Puts or removes placeholder text in the video URL field to make it more
      * user friendly. Also resets the file name in case of no input.
      *
-     * @param evt
+     * @param evt Swing event
      */
     private void videoURLFieldFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_videoURLFieldFocusGained
         if (videoURLField.getText().length() <= 0 || videoURLField.getText().equals("Video URL")) {
@@ -410,7 +416,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * Puts a placeholder in case that the field is still empty after losing the
      * focus
      *
-     * @param evt
+     * @param evt Swing event
      */
     private void videoURLFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_videoURLFieldFocusLost
         if (videoURLField.getText().length() <= 0 || videoURLField.getText().equals("Video URL")) {
@@ -422,7 +428,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * Puts or removes placeholder text in the file path field to make it more
      * user friendly. Also resets the file name in case of no input.
      *
-     * @param evt
+     * @param evt Swing event
      */
     private void pathFieldFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pathFieldFocusGained
         if (pathField.getText().length() <= 0 || pathField.getText().equals("Destiny file path")) {
@@ -435,7 +441,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * Puts a placeholder in case that the field is still empty after losing the
      * focus
      *
-     * @param evt
+     * @param evt Swing event
      */
     private void pathFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_pathFieldFocusLost
         if (pathField.getText().length() <= 0 || pathField.getText().equals("Destiny file path")) {
@@ -447,7 +453,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * Adds the video to the queue and, in case there are not active downloads
      * currently, starts them.
      *
-     * @param evt
+     * @param evt Swing event
      */
     private void videoURLDownloadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_videoURLDownloadButtonActionPerformed
         videoURLDownloadButton.setEnabled(false);
@@ -458,7 +464,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
             }
             defaultDownloadManager.addDownloadToQueue(videoURLField.getText(), fileNameField.getText(), getSelectedFormatOption());
             defaultDownloadManager.execute();
-            
+
         } catch (MalformedURLException ex) {
             createErrorDialog(this, "The inputted URL doesn't match a valid format", "Wrong URL format");
         } catch (RuntimeException ex) {
@@ -474,7 +480,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * Puts or removes placeholder text in the file name field to make it more
      * user friendly. Also resets the file name in case of no input.
      *
-     * @param evt
+     * @param evt Swing event
      */
     private void fileNameFieldFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fileNameFieldFocusGained
         if (fileNameField.getText().length() <= 0 || fileNameField.getText().equals("Destiny file name")) {
@@ -486,7 +492,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * Puts a placeholder in case that the field is still empty after losing the
      * focus
      *
-     * @param evt
+     * @param evt Swing event
      */
     private void fileNameFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fileNameFieldFocusLost
         if (fileNameField.getText().length() <= 0 || fileNameField.getText().equals("Destiny file name")) {
@@ -497,7 +503,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     /**
      * Opens http://www.codejumble.com at System's default browser
      *
-     * @param evt
+     * @param evt Swing event
      */
     private void helpPagesItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helpPagesItemActionPerformed
         try {
@@ -517,7 +523,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     /**
      * Opens a small dialog showing some info about OpenTube
      *
-     * @param evt
+     * @param evt Swing event
      */
     private void aboutItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutItemActionPerformed
         JOptionPane.showMessageDialog(this, "OpenTube v" + SOFTWARE_VERSION + "\nVisit www.codejumble.com", "About OpenTube", JOptionPane.PLAIN_MESSAGE);
@@ -525,7 +531,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     /**
      * Exits the program
      *
-     * @param evt
+     * @param evt Swing event
      */
     private void quitItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_quitItemActionPerformed
         System.exit(0);
@@ -534,14 +540,14 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * Opens the settings dialog and processes the changes performed (if
      * necessary)
      *
-     * @param evt
+     * @param evt Swing event
      */
     private void settingsItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsItemActionPerformed
         JTextField setting = new JTextField(configuredFolderForDownloadedMedia);
         Object[] settings = {
             "Downloads folder", setting
         };
-        
+
         int option = JOptionPane.showConfirmDialog(null, settings, "Settings", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             configuration.setProperty("downloadFolder", setting.getText());
@@ -557,7 +563,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * Imports a list of videos contained in a csv file or plaintext format to
      * the download queue directly and starts downloading.
      *
-     * @param evt
+     * @param evt Swing event
      */
     private void importItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importItemActionPerformed
         createErrorDialog(this, "This operation is not supported in this version", "Fatal error");
@@ -566,7 +572,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     /**
      * Deletes all the files contained in temporal files folder (Default: 'tmp')
      *
-     * @param evt
+     * @param evt Swing event
      */
     private void clearItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearItemActionPerformed
         try {
@@ -579,7 +585,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     /**
      * Displays the download queue, with certain information
      *
-     * @param evt
+     * @param evt Swing event
      */
     private void queueItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_queueItemActionPerformed
         createErrorDialog(this, "This operation is not supported in this version", "Fatal error");
@@ -630,6 +636,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     private javax.swing.JRadioButton aviFormatOption;
     private javax.swing.JMenuItem clearItem;
     private javax.swing.JProgressBar downloadProgressBar;
+    private javax.swing.JLabel downloadQueueProgress;
     private javax.swing.JLabel fileFormatLabel;
     private javax.swing.JMenu fileMenu;
     private javax.swing.JTextField fileNameField;
@@ -679,12 +686,12 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         String format = "mp4";
         for (Enumeration<AbstractButton> buttons = mediaFormatButtonGroup.getElements(); buttons.hasMoreElements();) {
             AbstractButton button = buttons.nextElement();
-            
+
             if (button.isSelected()) {
                 format = button.getText();
             }
         }
-        
+
         return format;
     }
 
@@ -759,5 +766,16 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      */
     private void resetVideoFileName() {
         fileNameField.setText("video-" + new SimpleDateFormat("yyyyMMdd HHmmssSSS").format(new Date()));
+    }
+
+    /**
+     * Updates the download queue status on the bottom. This method is called
+     * every time the download manager enques a new download or a download is
+     * done
+     * @param currentlyDownloadingIndex index of the current download in the queue
+     * @param downloadQueueSize total queue size
+     */
+    public void updateDownloadQueueStatus(int currentlyDownloadingIndex, int downloadQueueSize){
+        downloadQueueProgress.setText(currentlyDownloadingIndex + " of " + downloadQueueSize);
     }
 }
