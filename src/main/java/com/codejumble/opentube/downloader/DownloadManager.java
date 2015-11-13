@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.SwingWorker;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -39,7 +41,11 @@ public class DownloadManager extends SwingWorker {
     private List<Download> downloads;
     private final Main mainFrame;
 
+    //Logging 
+    Logger logger = LoggerFactory.getLogger(Download.class);
+
     public DownloadManager(Main frame, String tmpFolderPath, String downloadFolderPath) {
+        logger.info("Initilizing the download manager");
         this.downloadFolder = new File(downloadFolderPath);
         this.tmpFolder = new File(tmpFolderPath);
         this.downloads = new ArrayList<Download>();
@@ -47,6 +53,7 @@ public class DownloadManager extends SwingWorker {
     }
 
     public void addDownloadToQueue(String mediaURL, String mediaFileName, String endFormat) throws MalformedURLException {
+        logger.info("Adding download to queue with values URL={}, output file={}", mediaURL, downloadFolder.getAbsolutePath() + mediaFileName + endFormat);
         Download download = new Download(mediaURL, tmpFolder.getAbsolutePath(), mediaFileName, endFormat);
         downloads.add(download);
     }
@@ -54,7 +61,9 @@ public class DownloadManager extends SwingWorker {
     @Override
     protected Object doInBackground() throws Exception {
         try {
+            logger.info("Starting the download queue...");
             for (int i = 0; i < downloads.size(); i++) {
+                logger.info("Starting download number {}", i);
                 Download e = downloads.get(i);
                 mainFrame.changeStatus("Downloading");
                 e.addPropertyChangeListener(mainFrame);
@@ -67,6 +76,7 @@ public class DownloadManager extends SwingWorker {
                         //TODO
                     }
                 }
+                //TODO format converting
 //            if (!e.getEndFormat().equals("mp4")) {
 //                //if conversion needs to be performed
 //                mainFrame.changeStatus("Converting");
@@ -79,11 +89,13 @@ public class DownloadManager extends SwingWorker {
 //   ;
 //            }
                 //Move downloaded file to final destination
+                logger.info("Moving file to downloads folder...");
                 mainFrame.changeStatus("Locating");
                 File currentDownload = e.getTargetFile();
                 FileUtils.copyFile(currentDownload, new File(downloadFolder + File.separator + currentDownload.getName()));
 
                 //Clear tmp folder
+                logger.info("Cleaning cached elements");
                 FileUtils.cleanDirectory(tmpFolder);
             }
         } catch (Exception e) {
@@ -96,6 +108,7 @@ public class DownloadManager extends SwingWorker {
     @Override
     protected void done() {
         //When the job is done, switch the status
+        logger.info("Downloads are complete");
         mainFrame.changeStatus("Ready");
     }
 

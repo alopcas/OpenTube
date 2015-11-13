@@ -43,6 +43,8 @@ import javax.swing.SwingWorker;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Main frame of the program. Implements functionalities related to the view
@@ -70,7 +72,11 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     private String logsFolder;
     private String settingsFilePath = "conf" + File.separator + "settings.conf";
 
+    // Download manager to be used by default
     private DownloadManager defaultDownloadManager;
+
+    // Logging
+    static Logger logger = LoggerFactory.getLogger(Main.class);
 
     /**
      * Initilizes the main frame of the program. Loads settings and initializes
@@ -501,11 +507,11 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
                 try {
                     desktop.browse(uri);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    createErrorDialog(this, e.getMessage(), "Error!");
                 }
             }
         } catch (Exception ex) {
-            /* Log unexpected crash */
+            createErrorDialog(this, ex.getMessage(), "Unexpected error");
         }
     }//GEN-LAST:event_helpPagesItemActionPerformed
     /**
@@ -540,6 +546,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         if (option == JOptionPane.OK_OPTION) {
             configuration.setProperty("downloadFolder", setting.getText());
             try {
+                logger.info("Saving settings");
                 configuration.save();
             } catch (ConfigurationException ex) {
                 createErrorDialog(this, ex.getMessage(), "Fatal error");
@@ -598,19 +605,20 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            logger.error("Java error with text {}", ex.getMessage());
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            logger.error("Java error with text {}", ex.getMessage());
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            logger.error("Java error with text {}", ex.getMessage());
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            logger.error("Java error with text {}", ex.getMessage());
         }
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
+                logger.info("Starting the main frame");
                 new Main().setVisible(true);
             }
         });
@@ -696,6 +704,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * @param newStatus
      */
     public void changeStatus(String newStatus) {
+        logger.info("Status changed to {}", newStatus);
         status.setText(newStatus);
     }
 
@@ -706,7 +715,8 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * @param content content of the dialog
      * @param name name of the dialog
      */
-    public static void createErrorDialog(JFrame frame, String content, String name) {
+    public void createErrorDialog(JFrame frame, String content, String name) {
+        logger.error("Error! with message {}", content);
         JOptionPane.showMessageDialog(frame,
                 content,
                 name,
@@ -718,6 +728,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * icons, etc.
      */
     private void initParameters() {
+        logger.info("Initilizing parameters");
         String relativePathToDownloadFolder = (String) configuration.getProperty("downloadFolder");
         configuredFolderForDownloadedMedia = new File(relativePathToDownloadFolder).getAbsolutePath() + File.separator;
         String relativePathToTmpFolder = (String) configuration.getProperty("tmpFolder");
@@ -737,6 +748,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * unavailable/missing.
      */
     private PropertiesConfiguration loadConfiguration() throws ConfigurationException {
+        logger.info("Loading user settings...");
         PropertiesConfiguration prop = new PropertiesConfiguration(settingsFilePath);
         return prop;
     }

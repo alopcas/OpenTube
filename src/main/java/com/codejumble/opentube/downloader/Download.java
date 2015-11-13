@@ -26,6 +26,8 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.swing.SwingWorker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class implementing single downloads logic. Each download contains the core
@@ -41,6 +43,8 @@ public class Download extends SwingWorker {
     private int progress;
     private String endFormat;
 
+    //Logging 
+    Logger logger = LoggerFactory.getLogger(Download.class);
     /**
      * Initilizes a download with the given fields.
      *
@@ -52,12 +56,13 @@ public class Download extends SwingWorker {
      * standards (https://url.spec.whatwg.org/)
      */
     public Download(String videoURL, String path, String targetFileName, String endFormat) throws MalformedURLException {
-        targetFile = new File(path + File.separator + targetFileName + ".mp4");
+        targetFile = new File(path + File.separator + targetFileName + endFormat);
         this.endFormat = endFormat;
         v = new VGet(new URL(videoURL), new File(path));
         v.setTarget(targetFile);
         progress = 0;
         downloadInfo = v.getVideo().getInfo();
+        logger.info("New download created. url = {}, file={}", videoURL, targetFileName + endFormat);
     }
 
     /**
@@ -132,6 +137,7 @@ public class Download extends SwingWorker {
      */
     @Override
     protected Object doInBackground() {
+        logger.info("Starting download. Output file={}", this.targetFile.getName());
         setProgress(progress);
         v.download();
         return null;
@@ -142,6 +148,7 @@ public class Download extends SwingWorker {
      */
     @Override
     protected void done() {
+        logger.info("Download concluded successfully");
         setProgress(100);
     }
 
