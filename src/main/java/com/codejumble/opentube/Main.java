@@ -56,7 +56,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     /**
      * Software version
      */
-    public static String SOFTWARE_VERSION = "0.2";
+    public static String SOFTWARE_VERSION = "0.1";
 
     // Font set
     private final Font PLACEHOLDER_FONT = new Font("Verdana", Font.ITALIC, 12);
