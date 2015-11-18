@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.codejumble</groupId>
     <artifactId>OpenTube</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
     <name>OpenTube</name>
     <url>http://www.codejumble.com</url>
     <packaging>jar</packaging>
@@ -12,6 +12,7 @@
         <connection>scm:git:git@github.com:alopcas/tmpot</connection>
         <url>scm:git:git@github.com:alopcas/tmpot.git</url>
         <developerConnection>scm:git:git@github.com:alopcas/tmpot.git</developerConnection>
+    <tag>v0.1</tag>
   </scm>
     
     <properties>
