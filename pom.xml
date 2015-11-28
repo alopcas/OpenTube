@@ -9,9 +9,9 @@
     <packaging>jar</packaging>
     
     <scm>
-        <connection>scm:git:git@github.com:alopcas/opentube</connection>
-        <url>scm:git:git@github.com:alopcas/opentube.git</url>
-        <developerConnection>scm:git:git@github.com:alopcas/opentube.git</developerConnection>
+        <connection>scm:git:git@github.com:alopcas/OpenTube</connection>
+        <url>scm:git:git@github.com:alopcas/OpenTube.git</url>
+        <developerConnection>scm:git:git@github.com:alopcas/OpenTube.git</developerConnection>
       <tag>v0.1</tag>
   </scm>
     
