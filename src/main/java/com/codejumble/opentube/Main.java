@@ -106,6 +106,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     private void initComponents() {
 
         mediaFormatButtonGroup = new javax.swing.ButtonGroup();
+        defaultFileChooser = new javax.swing.JFileChooser();
         videoURLDownloadButton = new javax.swing.JButton();
         downloadProgressBar = new javax.swing.JProgressBar();
         videoURLField = new javax.swing.JTextField();
@@ -125,6 +126,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         flvFormatOption = new javax.swing.JRadioButton();
         oggFormatOption = new javax.swing.JRadioButton();
         downloadQueueProgress = new javax.swing.JLabel();
+        browseButton = new javax.swing.JButton();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         settingsItem = new javax.swing.JMenuItem();
@@ -136,6 +138,8 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         helpMenu = new javax.swing.JMenu();
         helpPagesItem = new javax.swing.JMenuItem();
         aboutItem = new javax.swing.JMenuItem();
+
+        defaultFileChooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("OpenTube v"+SOFTWARE_VERSION + "- www.codejumble.com");
@@ -235,6 +239,14 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
 
         downloadQueueProgress.setText("0 of 0");
 
+        browseButton.setFont(new java.awt.Font("Verdana", 0, 11)); // NOI18N
+        browseButton.setText("Browse");
+        browseButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                browseButtonActionPerformed(evt);
+            }
+        });
+
         fileMenu.setText("File");
 
         settingsItem.setText("Settings");
@@ -327,7 +339,9 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
                             .addComponent(videoURLField)
                             .addComponent(fileNameField, javax.swing.GroupLayout.Alignment.TRAILING))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(videoURLDownloadButton)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(videoURLDownloadButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(browseButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(fileFormatLabel)
@@ -371,7 +385,8 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                 .addComponent(pathField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(pathURLLabel))
+                                .addComponent(pathURLLabel)
+                                .addComponent(browseButton))
                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                 .addComponent(mp3FormatOption)
                                 .addComponent(aacFormatOption)
@@ -593,6 +608,19 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     }//GEN-LAST:event_queueItemActionPerformed
 
     /**
+     * Allows to select the destiny of the download using a browse dialog
+     *
+     * @param evt Swing event
+     */
+    private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseButtonActionPerformed
+        defaultFileChooser.showOpenDialog(this);
+        if (defaultFileChooser.getSelectedFile() == null) {
+            File selectedDestiny = defaultFileChooser.getSelectedFile();
+            pathField.setText(selectedDestiny.getAbsolutePath());
+        }
+    }//GEN-LAST:event_browseButtonActionPerformed
+
+    /**
      * Starts the program off.
      *
      * @param args the command line arguments
@@ -623,6 +651,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 logger.info("Starting the main frame");
                 new Main().setVisible(true);
@@ -634,7 +663,9 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     private javax.swing.JRadioButton aacFormatOption;
     private javax.swing.JMenuItem aboutItem;
     private javax.swing.JRadioButton aviFormatOption;
+    private javax.swing.JButton browseButton;
     private javax.swing.JMenuItem clearItem;
+    private javax.swing.JFileChooser defaultFileChooser;
     private javax.swing.JProgressBar downloadProgressBar;
     private javax.swing.JLabel downloadQueueProgress;
     private javax.swing.JLabel fileFormatLabel;
@@ -667,7 +698,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * Checks if progress has changed and updates the download progress bar
      * value.
      *
-     * @param pce
+     * @param pce property
      */
     @Override
     public void propertyChange(PropertyChangeEvent pce) {
@@ -772,10 +803,12 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * Updates the download queue status on the bottom. This method is called
      * every time the download manager enques a new download or a download is
      * done
-     * @param currentlyDownloadingIndex index of the current download in the queue
+     *
+     * @param currentlyDownloadingIndex index of the current download in the
+     * queue
      * @param downloadQueueSize total queue size
      */
-    public void updateDownloadQueueStatus(int currentlyDownloadingIndex, int downloadQueueSize){
+    public void updateDownloadQueueStatus(int currentlyDownloadingIndex, int downloadQueueSize) {
         downloadQueueProgress.setText(currentlyDownloadingIndex + " of " + downloadQueueSize);
     }
 }
