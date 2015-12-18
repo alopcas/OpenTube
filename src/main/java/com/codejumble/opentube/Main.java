@@ -39,8 +39,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.swing.AbstractButton;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -245,7 +243,6 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
 
         mediaFormatButtonGroup.add(flvFormatOption);
         flvFormatOption.setText("flv");
-        flvFormatOption.setEnabled(false);
 
         mediaFormatButtonGroup.add(oggFormatOption);
         oggFormatOption.setText("ogg");
@@ -607,19 +604,22 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     private void importItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importItemActionPerformed
         importListFileChooser.showOpenDialog(this);
         if (importListFileChooser.getSelectedFile() != null) {
+            logger.error("Importing file located at {}", importListFileChooser.getSelectedFile().getAbsolutePath());
             List<String> urls = null;
             try {
                 urls = renderDownloadQueue(importListFileChooser.getSelectedFile());
             } catch (IOException ex) {
                 createErrorDialog(this, ex.getMessage(), "Error");
             }
-            
+
             int downloadQueueSize = 0;
-            if(!urls.isEmpty()){
+            if (!urls.isEmpty()) {
+                logger.error("Loading the URLs in the download manager");
                 downloadQueueSize = defaultDownloadManager.getDownloadQueueSize();
-            for (String url : urls) {
-                updateDownloadManagerWithNewURL(url);
-            }}else{
+                for (String url : urls) {
+                    updateDownloadManagerWithNewURL(url);
+                }
+            } else {
                 createErrorDialog(this, "No valid links were found, the file must format a url/row file", "ERROR");
             }
             // Notify the user of the success
@@ -627,6 +627,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         }
     }//GEN-LAST:event_importItemActionPerformed
     private List<String> renderDownloadQueue(File importedFile) throws IOException {
+        logger.error("Rendering the download page...");
         List<String> lines = Files.readAllLines(Paths.get(importedFile.getAbsolutePath()), Charset.defaultCharset());
         List<String> linesToRemove = new ArrayList<String>();
         for (String line : lines) {
@@ -635,6 +636,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
             }
         }
         lines.removeAll(linesToRemove);
+        logger.error("Valid urls found: {}", lines.size());
         return lines;
     }
 

@@ -394,7 +394,6 @@
           <ComponentRef name="mediaFormatButtonGroup"/>
         </Property>
         <Property name="text" type="java.lang.String" value="flv"/>
-        <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JRadioButton" name="oggFormatOption">
