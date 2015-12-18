@@ -31,18 +31,27 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.AbstractButton;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.SwingWorker;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.validator.UrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +74,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     // Configuration
     private PropertiesConfiguration configuration;
     private ImageIcon appLogo;
+    private UrlValidator urlValidator;
 
     // Strings where settings are stored during execution
     private String configuredFolderForDownloadedMedia;
@@ -107,6 +117,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
 
         mediaFormatButtonGroup = new javax.swing.ButtonGroup();
         defaultFileChooser = new javax.swing.JFileChooser();
+        importListFileChooser = new javax.swing.JFileChooser();
         videoURLDownloadButton = new javax.swing.JButton();
         downloadProgressBar = new javax.swing.JProgressBar();
         videoURLField = new javax.swing.JTextField();
@@ -140,6 +151,9 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         aboutItem = new javax.swing.JMenuItem();
 
         defaultFileChooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
+
+        importListFileChooser.setDialogTitle("");
+        importListFileChooser.setFileFilter(new FileNameExtensionFilter("Text files", "txt", "text"));
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("OpenTube v"+SOFTWARE_VERSION + "- www.codejumble.com");
@@ -471,13 +485,22 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * @param evt Swing event
      */
     private void videoURLDownloadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_videoURLDownloadButtonActionPerformed
+        updateDownloadManagerWithNewURL(videoURLField.getText());
+    }//GEN-LAST:event_videoURLDownloadButtonActionPerformed
+    /**
+     * Updates the download manager with a new link, if the manager hasn't
+     * started it will be initialized.
+     *
+     * @param url URL address to add
+     */
+    private void updateDownloadManagerWithNewURL(String url) {
         videoURLDownloadButton.setEnabled(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         try {
             if (isWaitingForTasks() && defaultDownloadManager.getState().equals(SwingWorker.StateValue.DONE)) {
                 defaultDownloadManager = new DownloadManager(this, tmpFilesFolder, configuredFolderForDownloadedMedia);
             }
-            defaultDownloadManager.addDownloadToQueue(videoURLField.getText(), fileNameField.getText(), getSelectedFormatOption());
+            defaultDownloadManager.addDownloadToQueue(url, fileNameField.getText(), getSelectedFormatOption());
             defaultDownloadManager.execute();
 
         } catch (MalformedURLException ex) {
@@ -490,7 +513,8 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         videoURLDownloadButton.setEnabled(true);
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         resetVideoFileName();
-    }//GEN-LAST:event_videoURLDownloadButtonActionPerformed
+    }
+
     /**
      * Puts or removes placeholder text in the file name field to make it more
      * user friendly. Also resets the file name in case of no input.
@@ -581,9 +605,39 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      * @param evt Swing event
      */
     private void importItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importItemActionPerformed
-        createErrorDialog(this, "This operation is not supported in this version", "Fatal error");
-        throw new UnsupportedOperationException();
+        importListFileChooser.showOpenDialog(this);
+        if (importListFileChooser.getSelectedFile() != null) {
+            List<String> urls = null;
+            try {
+                urls = renderDownloadQueue(importListFileChooser.getSelectedFile());
+            } catch (IOException ex) {
+                createErrorDialog(this, ex.getMessage(), "Error");
+            }
+            
+            int downloadQueueSize = 0;
+            if(!urls.isEmpty()){
+                downloadQueueSize = defaultDownloadManager.getDownloadQueueSize();
+            for (String url : urls) {
+                updateDownloadManagerWithNewURL(url);
+            }}else{
+                createErrorDialog(this, "No valid links were found, the file must format a url/row file", "ERROR");
+            }
+            // Notify the user of the success
+            JOptionPane.showMessageDialog(this, defaultDownloadManager.getDownloadQueueSize() - downloadQueueSize + " were successfully imported");
+        }
     }//GEN-LAST:event_importItemActionPerformed
+    private List<String> renderDownloadQueue(File importedFile) throws IOException {
+        List<String> lines = Files.readAllLines(Paths.get(importedFile.getAbsolutePath()), Charset.defaultCharset());
+        List<String> linesToRemove = new ArrayList<String>();
+        for (String line : lines) {
+            if (!urlValidator.isValid(line)) {
+                linesToRemove.add(line);
+            }
+        }
+        lines.removeAll(linesToRemove);
+        return lines;
+    }
+
     /**
      * Deletes all the files contained in temporal files folder (Default: 'tmp')
      *
@@ -614,7 +668,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
      */
     private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseButtonActionPerformed
         defaultFileChooser.showOpenDialog(this);
-        if (defaultFileChooser.getSelectedFile() == null) {
+        if (defaultFileChooser.getSelectedFile() != null) {
             File selectedDestiny = defaultFileChooser.getSelectedFile();
             pathField.setText(selectedDestiny.getAbsolutePath());
         }
@@ -676,6 +730,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
     private javax.swing.JMenu helpMenu;
     private javax.swing.JMenuItem helpPagesItem;
     private javax.swing.JMenuItem importItem;
+    private javax.swing.JFileChooser importListFileChooser;
     private javax.swing.ButtonGroup mediaFormatButtonGroup;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JRadioButton mp3FormatOption;
@@ -776,6 +831,7 @@ public class Main extends javax.swing.JFrame implements PropertyChangeListener {
         defaultDownloadManager = new DownloadManager(this, tmpFilesFolder, configuredFolderForDownloadedMedia);
 //        ImageIcon img = new ImageIcon("C:\\Users\\lope115\\Documents\\NetBeansProjects\\tmpot\\src\\main\\resources\\media" + File.separator + "icon.png");
 //        this.appLogo = img;
+        urlValidator = new UrlValidator();
     }
 
     /**

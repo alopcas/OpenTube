@@ -129,5 +129,9 @@ public class DownloadManager extends SwingWorker {
         logger.info("Downloads are complete");
         mainFrame.changeStatus("Ready");
     }
+    
+    public int getDownloadQueueSize(){
+        return downloadQueueSize;
+    }
 
 }
