@@ -5,7 +5,6 @@
     <artifactId>OpenTube</artifactId>
     <version>0.3-SNAPSHOT</version>
     <name>OpenTube</name>
-    <url>http://www.codejumble.com</url>
     <packaging>jar</packaging>
 
     <scm>
