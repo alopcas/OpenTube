@@ -28,3 +28,5 @@ function updateTabs(type)
         }
     }
 }
+
+var x = "hola";
